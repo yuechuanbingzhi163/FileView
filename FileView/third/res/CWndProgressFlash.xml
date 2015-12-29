@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<Window size="72,72" bktrans="true">
+  <!--0--> <Font name="微软雅黑" size="18" bold="false" italic="false" />
+
+    <VerticalLayout >  
+	  
+	  <Control name="lab_pic"   />
+		    
+
+    </VerticalLayout>
+	
+	
+</Window>

@@ -1,0 +1,105 @@
+﻿生成启动时间为 2015/12/29/星期二 11:19:21。
+     1>项目“E:\FileView\third\duilib\duilib.vcxproj”在节点 2 上(Rebuild 个目标)。
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I..\duilib /ZI /nologo /W3 /WX- /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt Control\UIActiveX.cpp Control\UIAnimation.cpp Control\UIButton.cpp Control\UICheckBox.cpp Control\UICombo.cpp Control\UIComboBox.cpp Control\UIDateTime.cpp Control\UIEdit.cpp Control\UIFlash.cpp Control\UIGifAnim.cpp Control\UILabel.cpp Control\UIList.cpp Control\UIMenu.cpp Control\UIOption.cpp Control\UIPage.cpp Control\UIProgress.cpp Control\UIRichEdit.cpp Control\UIScrollBar.cpp Control\UISlider.cpp Control\UIText.cpp Control\UITreeView.cpp Control\UIWebBrowser.cpp Core\UIBase.cpp Core\UIContainer.cpp Core\UIControl.cpp Core\UIDlgBuilder.cpp Core\UIManager.cpp Core\UIMarkup.cpp Core\UIRender.cpp Layout\UIAnimationTabLayout.cpp Layout\UIChildLayout.cpp Layout\UIHorizontalLayout.cpp Layout\UITabLayout.cpp Layout\UITileLayout.cpp Layout\UIVerticalLayout.cpp StdAfx.cpp UIlib.cpp Utils\UIDelegate.cpp Utils\UIShadow.cpp Utils\Utils.cpp Utils\WinImplBase.cpp Utils\XUnzip.cpp
+         XUnzip.cpp
+         WinImplBase.cpp
+         Utils.cpp
+         UIShadow.cpp
+         UIDelegate.cpp
+         UIlib.cpp
+         StdAfx.cpp
+         UIVerticalLayout.cpp
+         UITileLayout.cpp
+         UITabLayout.cpp
+         UIHorizontalLayout.cpp
+         UIChildLayout.cpp
+         UIAnimationTabLayout.cpp
+         UIRender.cpp
+         UIMarkup.cpp
+         UIManager.cpp
+         UIDlgBuilder.cpp
+         UIControl.cpp
+         UIContainer.cpp
+         UIBase.cpp
+         正在生成代码...
+         正在编译...
+         UIWebBrowser.cpp
+         UITreeView.cpp
+         UIText.cpp
+         UISlider.cpp
+         UIScrollBar.cpp
+         UIRichEdit.cpp
+     1>e:\fileview\third\duilib\control\uirichedit.cpp(2544): warning C4244: “参数”: 从“WORD”转换到“BYTE”，可能丢失数据
+         UIProgress.cpp
+         UIPage.cpp
+         UIOption.cpp
+         UIMenu.cpp
+         UIList.cpp
+         UILabel.cpp
+         UIGifAnim.cpp
+         UIFlash.cpp
+         UIEdit.cpp
+         UIDateTime.cpp
+         UIComboBox.cpp
+         UICombo.cpp
+         UICheckBox.cpp
+         UIButton.cpp
+         正在生成代码...
+         正在编译...
+         UIAnimation.cpp
+         UIActiveX.cpp
+         正在生成代码...
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I..\duilib /ZI /nologo /W3 /WX- /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TC /analyze- /errorReport:prompt Utils\stb_image.c
+         stb_image.c
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\Lib.exe /OUT:"E:\FileView\Debug\duilib.lib" /NOLOGO Debug\UIActiveX.obj
+         Debug\UIAnimation.obj
+         Debug\UIButton.obj
+         Debug\UICheckBox.obj
+         Debug\UICombo.obj
+         Debug\UIComboBox.obj
+         Debug\UIDateTime.obj
+         Debug\UIEdit.obj
+         Debug\UIFlash.obj
+         Debug\UIGifAnim.obj
+         Debug\UILabel.obj
+         Debug\UIList.obj
+         Debug\UIMenu.obj
+         Debug\UIOption.obj
+         Debug\UIPage.obj
+         Debug\UIProgress.obj
+         Debug\UIRichEdit.obj
+         Debug\UIScrollBar.obj
+         Debug\UISlider.obj
+         Debug\UIText.obj
+         Debug\UITreeView.obj
+         Debug\UIWebBrowser.obj
+         Debug\UIBase.obj
+         Debug\UIContainer.obj
+         Debug\UIControl.obj
+         Debug\UIDlgBuilder.obj
+         Debug\UIManager.obj
+         Debug\UIMarkup.obj
+         Debug\UIRender.obj
+         Debug\UIAnimationTabLayout.obj
+         Debug\UIChildLayout.obj
+         Debug\UIHorizontalLayout.obj
+         Debug\UITabLayout.obj
+         Debug\UITileLayout.obj
+         Debug\UIVerticalLayout.obj
+         Debug\StdAfx.obj
+         Debug\UIlib.obj
+         Debug\stb_image.obj
+         Debug\UIDelegate.obj
+         Debug\UIShadow.obj
+         Debug\Utils.obj
+         Debug\WinImplBase.obj
+         Debug\XUnzip.obj
+     1>StdAfx.obj : warning LNK4221: 此对象文件未定义任何之前未定义的公共符号，因此任何耗用此库的链接操作都不会使用此文件
+         duilib.vcxproj -> E:\FileView\Debug\duilib.lib
+     1>已完成生成项目“E:\FileView\third\duilib\duilib.vcxproj”(Rebuild 个目标)的操作。
+
+生成成功。
+
+已用时间 00:00:44.71

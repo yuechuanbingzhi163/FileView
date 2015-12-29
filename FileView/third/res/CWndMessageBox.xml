@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<Window size="320,200" caption="0,0,0,40" showshadow="true" shadowsize="5" shadowposition="1,1" shadowcolor="#333333" >
+  <!--0--> <Font name="微软雅黑" size="14" bold="false" italic="false" default="true"/>
+  <!--1--> <Font name="微软雅黑" size="16" bold="false" italic="false" />
+  
+  <Include source="scrollbar.xml" />
+
+    <VerticalLayout bkcolor="#FFFFFFFF">  
+		<VerticalLayout bkimage="titlebk.png" height="30" >
+			<HorizontalLayout >
+				<Label bkimage="log_small.png" width="20" height="20" padding="10,6,8,0" />
+				<Label text="提  示" width="100" font="1" textcolor="#FFFFFFFF"/>
+				<Control />
+				<Button name="btn_close" padding="0,7,0,7" width="16" height="16" normalimage="file='关闭.png' source='0,0,16,16'" hotimage="file='关闭.png' source='32,0,48,16'" pushedimage="file='关闭.png' source='32,0,48,16'" />
+				<Control width="20" />
+			</HorizontalLayout>		
+		</VerticalLayout>
+		
+		<Control height="42" />
+		
+		<Button name="btn_tip" height="30" mouse="false" text="提示文字"/>
+		
+		<Control height="42" />
+		
+		<TabLayout name="tab_btn" height="26" padding="20,0,20,0" selectedid="1">
+			<HorizontalLayout>
+				<Control width="45" />
+				<Button name="btn_ok" text="确 定" width="80" normalimage="file='btn_normal.png' corner='2,2,2,2'" hotimage="file='btn_hot.png' corner='2,2,2,2'" pushedimage="file='btn_down.png' corner='2,2,2,2'" disabledimage="file='btn_disable.png' corner='2,2,2,2'" />
+				<Control width="30" />
+				<Button name="btn_cancel" text="取 消" width="80" normalimage="file='btn_normal.png' corner='2,2,2,2'" hotimage="file='btn_hot.png' corner='2,2,2,2'" pushedimage="file='btn_down.png' corner='2,2,2,2'" disabledimage="file='btn_disable.png' corner='2,2,2,2'" />
+				<Control width="45" />
+			</HorizontalLayout>
+			
+			<HorizontalLayout>
+				<Control width="100" />
+				<Button name="btn_ok" text="确 定" width="80" normalimage="file='btn_normal.png' corner='2,2,2,2'" hotimage="file='btn_hot.png' corner='2,2,2,2'" pushedimage="file='btn_down.png' corner='2,2,2,2'" disabledimage="file='btn_disable.png' corner='2,2,2,2'" />
+				<Control width="100" />
+			</HorizontalLayout>			
+		</TabLayout>
+    
+		<Control height="30" />
+
+    </VerticalLayout>
+	
+	
+</Window>

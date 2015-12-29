@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<Window size="120,60" showshadow="true" shadowsize="5" shadowposition="1,1" shadowcolor="#333333" >
+  <!--0--> <Font name="微软雅黑" size="18" bold="false" italic="false" />
+
+    <VerticalLayout bkimage="托盘背景.png">  
+	  
+	  <List name="menulist" itemhotbkcolor="#FFcccccc">
+<!-- 		<ListContainerElement >
+			<Button name="btn_user_tool" text="用户工具" textpadding="0,0,0,0" />
+		</ListContainerElement> -->
+		<ListContainerElement >
+			<Button name="btn_mgr_tool" text="用户工具" textpadding="0,0,0,0" />
+		</ListContainerElement>
+		<ListContainerElement >
+			<Button name="btn_quit" text="退  出" textpadding="0,0,0,0" />
+		</ListContainerElement>
+      </List>
+
+		    
+
+    </VerticalLayout>
+	
+	
+</Window>
