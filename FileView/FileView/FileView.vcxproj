@@ -84,6 +84,7 @@
     <ClInclude Include="CTreeDeviceNode.h" />
     <ClInclude Include="CWndProgressFlash.h" />
     <ClInclude Include="DataCenter.h" />
+    <ClInclude Include="DropTargetEx.h" />
     <ClInclude Include="DumpCatch.h" />
     <ClInclude Include="FileView.h" />
     <ClInclude Include="logging.h" />
@@ -102,6 +103,7 @@
     <ClCompile Include="CTreeDeviceNode.cpp" />
     <ClCompile Include="CWndProgressFlash.cpp" />
     <ClCompile Include="DataCenter.cpp" />
+    <ClCompile Include="DropTargetEx.cpp" />
     <ClCompile Include="DumpCatch.cpp" />
     <ClCompile Include="FileView.cpp" />
     <ClCompile Include="logging.cpp" />

@@ -2,25 +2,20 @@
 
 #include "stdafx.h"
 
+
 class CTreeNodeDevice: public CTreeNodeUI
 {
 public:
     CTreeNodeDevice();
-    virtual ~CTreeNodeDevice();
+    virtual ~CTreeNodeDevice();   
 
-    void SetLabelText(LPCTSTR lpText);
-
-    void DoEvent(TEventUI& event);
+	void SetDirText(LPCTSTR lpDir);
+	string GetDirText();
 
 private:
-    CHorizontalLayoutUI *m_pHorSecond;
+	string m_strDIR;
 
-	CControlUI *m_pControlStar;
 
-    CLabelUI *m_pLabelText;
-    CButtonUI *m_pBtnRefresh;    
-    CButtonUI *m_pBtnAdd;   
-    CButtonUI *m_pBtnDelete;
-    CControlUI *m_pSpace;
-    CControlUI *m_pFinalSpace;
+	CLabelUI *m_pLabText;
+
 };

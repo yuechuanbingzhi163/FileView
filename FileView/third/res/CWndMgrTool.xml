@@ -41,8 +41,8 @@
 		
 			 <Container bkcolor="FFf4f3f3" inset="4,4,4,10" width="200" bordersize="1" bordercolor="#ffc4cbd1" >
 				<TreeView  name="tree_file" itemfont="6" minwidth="200" itemselectedbkcolor="#FFCBDDFF" itemhotimage="file='btn_hot.png' corner='2,2,2,2'" itemselectedimage="file='btn_hot.png' corner='2,2,2,2'" childpadding="2" bkcolor="#FFf4f3f3" visiblecheckbtn="true" vscrollbar="true" hscrollbar="true">
-					<TreeNode text="所有文件" name="computer" height="20" itemattr="textpadding=&quot;2,0,0,0&quot; font=&quot;6&quot;" >
-					</TreeNode>
+					
+					
 				</TreeView>
              </Container>
 			 
@@ -85,7 +85,7 @@
 				</HorizontalLayout>		
 
 				<Container name="con_file_list"inset="0,0,0,0">
-					<List name="list_produce_mgr"	padding="0,5,0,0" inset="2,2,2,2" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="#FFAFAFAF" itemselectedimage="btncover2.png">
+					<List name="list_file"	padding="0,5,0,0" inset="2,2,2,2" vscrollbar="true" hscrollbar="true" bordersize="1" bordercolor="#FFAFAFAF" itemselectedimage="btncover2.png">
 						<ListHeader height="30" bkcolor="#ffeeeeee" >
 							<ListHeaderItem name="list_headItem_product_id" inset="1,0,1,0" width="160" sepimage="list_header_sep.png" sepimm="true" sepwidth="1" hotimage="headitemhot.png">
 								<Label text="名称" textpadding="3,0,0,0" textcolor="#ff333333" endellipsis="true"/>

@@ -6,10 +6,10 @@
   <Include source="scrollbar.xml" />
 
     <VerticalLayout bkcolor="#FFFFFFFF">  
-		<VerticalLayout bkimage="titlebk.png" height="30" >
+		<VerticalLayout bkimage="标题.png" height="30" >
 			<HorizontalLayout >
 				<Label bkimage="log_small.png" width="20" height="20" padding="10,6,8,0" />
-				<Label text="提  示" width="100" font="1" textcolor="#FFFFFFFF"/>
+				<Label text="提示" width="100" font="1" textcolor="#FFFFFFFF"/>
 				<Control />
 				<Button name="btn_close" padding="0,7,0,7" width="16" height="16" normalimage="file='关闭.png' source='0,0,16,16'" hotimage="file='关闭.png' source='32,0,48,16'" pushedimage="file='关闭.png' source='32,0,48,16'" />
 				<Control width="20" />
