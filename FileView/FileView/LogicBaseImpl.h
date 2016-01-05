@@ -7,10 +7,14 @@
 class CLogicBaseImpl
 {
 public:      
-    
+	//²Ëµ¥Ïî
+    void GetMenuCommandString(int nIndex, string &strText);   //nIndex: 0 - 4;
+	void ExecuteMenuCommand(int nIndex);   //nIndex: 0 - 4;
 
 protected:
 	CLogicBaseImpl();
     ~CLogicBaseImpl();
 };
+
+BOOL ChangeWindowMessageFilterEx2(HWND hWnd, UINT uMessage, BOOL bAllow = TRUE);
 

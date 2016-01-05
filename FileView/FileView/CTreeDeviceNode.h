@@ -9,6 +9,8 @@ public:
     CTreeNodeDevice();
     virtual ~CTreeNodeDevice();   
 
+	void SetFolderButtonVisible(bool b = true);
+
 	void SetDirText(LPCTSTR lpDir);
 	string GetDirText();
 

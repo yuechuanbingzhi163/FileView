@@ -3,6 +3,7 @@
 #include "WndTray.h"
 #include "WndMgrTool.h"
 #include <tlhelp32.h>
+#include "LogicBaseImpl.h"
 
 static UINT WM_TASKBAR_RESTART = 0;
 
@@ -113,7 +114,7 @@ void CMainFrameWork::ShowManagerTool()
         m_pManagerTool = new CWndMgrTool;
         m_pManagerTool->Create(NULL, _T("用户工具"), WS_OVERLAPPEDWINDOW, 0);
         m_pManagerTool->CenterWindow();
-        m_pManagerTool->ShowWindow();   
+        m_pManagerTool->ShowWindow();   		
 }
 
 ATOM CMainFrameWork::MyRegisterClass( HINSTANCE hInstance )

@@ -2,14 +2,14 @@
 
 #include "stdafx.h"
 
+string GetDescByFileType(LPCTSTR lpFileExtension);
 
 
-
-class CListContainerElementLicense: public CListContainerElementUI
+class CListContainerElementFile: public CListContainerElementUI
 {
 public:
-    CListContainerElementLicense( );
-    virtual ~CListContainerElementLicense();
+    CListContainerElementFile( );
+    virtual ~CListContainerElementFile();
 
 	LPCTSTR GetClass() const;
 

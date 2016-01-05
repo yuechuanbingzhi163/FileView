@@ -40,11 +40,19 @@ public:
 
 	void DeleteFile();
 
+	void CopyLocalFileToCurDisk(LPCTSTR lpFilePath);
+	void CopyLocalDirectoryToCurDisk(LPCTSTR lpDirPath);
+	void EnumLocalDirToVDiskDir(LPCTSTR lpLocalDirPath, LPCTSTR lpVDDirPath);
+
+	bool IsFileExistInVDiskDirectory(LPCTSTR lpDirPath, LPCTSTR lpFileName);
+	bool IsDirExistInVDiskDirectroy(LPCTSTR lpDirPath, LPCTSTR lpDirName);
+
+	void OnHandleListOrder(TNotifyUI &msg);	
+
 	DUI_DECLARE_MESSAGE_MAP()
 private:
 	CWndProgressFlash *m_pProgressFlash;
 	HANDLE  m_hThreadCommon;
-
 
 private:
 	void *m_pFs;
@@ -52,8 +60,15 @@ private:
 	CTreeViewUI *m_pTreeFile;
 	CListUI *m_pListFile;
 
+	CHorizontalLayoutUI *m_pHorCommands;
+	CButtonUI *m_pBtnCmd0;
+	CButtonUI *m_pBtnCmd1;
+	CButtonUI *m_pBtnCmd2;
+	CButtonUI *m_pBtnCmd3;
+	CButtonUI *m_pBtnCmd4;
+
 	CTreeNodeDevice *m_pCurSelTreeNode;
-	CListContainerElementLicense *m_pCurSelListItem;
+	CListContainerElementFile *m_pCurSelListItem;
 
 	CDropTargetEx m_DragDrop;
 };

@@ -1,8 +1,15 @@
 #include "StdAfx.h"
 #include "WndMgrTool.h"
 #include "MainFrameWork.h"
+#include "LogicImpl.h"
+#include <atlbase.h>
 
 void SetClipBoardSelfData(LPCTSTR lpData);
+
+SYSTEMTIME INT64ToSystemTime(INT64 t);
+INT64 SystemTimeToINT64(SYSTEMTIME systime);
+
+int CALLBACK OrderListByHeadItem(UINT_PTR ptr1, UINT_PTR ptr2, UINT_PTR ptrData);
 
 DUI_BEGIN_MESSAGE_MAP(CWndMgrTool, CNotifyPump)
     DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK,OnClick)   
@@ -28,11 +35,35 @@ void CWndMgrTool::Notify( TNotifyUI &msg )
 
     if (msg.sType == DUI_MSGTYPE_CLICK)
     {
-        
+        if (msg.pSender == m_pBtnCmd0)
+        {
+			CLogicImpl _impl;
+			_impl.ExecuteMenuCommand(0);
+        }
+		else if (msg.pSender == m_pBtnCmd1)
+		{
+			CLogicImpl _impl;
+			_impl.ExecuteMenuCommand(1);
+		}
+		else if (msg.pSender == m_pBtnCmd2)
+		{
+			CLogicImpl _impl;
+			_impl.ExecuteMenuCommand(2);
+		}
+		else if (msg.pSender == m_pBtnCmd3)
+		{
+			CLogicImpl _impl;
+			_impl.ExecuteMenuCommand(3);
+		}
+		else if (msg.pSender == m_pBtnCmd4)
+		{
+			CLogicImpl _impl;
+			_impl.ExecuteMenuCommand(4);
+		}
     }
 	else if (msg.sType == DUI_MSGTYPE_HEADERCLICK)
 	{
-		
+		OnHandleListOrder(msg);
 	}
     else if (msg.sType == DUI_MSGTYPE_MENU)
     {       
@@ -46,6 +77,7 @@ void CWndMgrTool::Notify( TNotifyUI &msg )
 			 CMenuUI *rootMenu = pMenu->GetMenuUI();					 
 			 
 			 CMenuElementUI *pLogoutItem = new CMenuElementUI;
+			 pLogoutItem->SetFixedHeight(25);
 			 pLogoutItem->SetName(_T("list_file_new_dir"));
 			 pLogoutItem->SetText(_T("新建文件夹"));				 
 			 rootMenu->Add(pLogoutItem);			
@@ -55,7 +87,7 @@ void CWndMgrTool::Notify( TNotifyUI &msg )
 
 		if (StrCmp(msg.pSender->GetClass(), "CListContainerElementFIle") == 0)
 		{
-			m_pCurSelListItem = static_cast<CListContainerElementLicense*>(msg.pSender);
+			m_pCurSelListItem = static_cast<CListContainerElementFile*>(msg.pSender);
 
 			CMenuWnd *pMenu = new CMenuWnd;
 			DuiLib::CPoint point = msg.ptMouse;
@@ -65,6 +97,7 @@ void CWndMgrTool::Notify( TNotifyUI &msg )
 			CMenuUI *rootMenu = pMenu->GetMenuUI();					 
 
 			CMenuElementUI *pLogoutItem = new CMenuElementUI;
+			pLogoutItem->SetFixedHeight(25);
 			pLogoutItem->SetName(_T("list_file_delete"));
 			pLogoutItem->SetText(_T("删除"));				 
 			rootMenu->Add(pLogoutItem);			
@@ -74,7 +107,24 @@ void CWndMgrTool::Notify( TNotifyUI &msg )
     }
     else if (msg.sType == DUI_MSGTYPE_ITEMDBCLICK)
     {
-         
+         if (strcmp(msg.pSender->GetClass(), "CListContainerElementFIle") == 0)
+         {
+			 CListContainerElementFile *pItem = static_cast<CListContainerElementFile*>(msg.pSender);
+			 file_entry itemFileEntry = pItem->GetFileEntry();
+			 if (itemFileEntry.is_dir)
+			 {
+				 int nChildCount = m_pTreeFile->GetCount();
+				 for (int i=0; i<nChildCount; i++)
+				 {
+					 CTreeNodeDevice *pNode = static_cast<CTreeNodeDevice*>(m_pTreeFile->GetItemAt(i));
+					 if ((pNode->GetDirText() == itemFileEntry.filename) && (pNode->GetParentNode() == m_pCurSelTreeNode))
+					 {
+						 m_pTreeFile->SelectItem(i);
+						 break;
+					 }
+				 }
+			 }
+         }
     }
     else if (msg.sType == DUI_MSGTYPE_TIMER)
     {
@@ -82,71 +132,7 @@ void CWndMgrTool::Notify( TNotifyUI &msg )
     }
 	else if (msg.sType == DUI_MSGTYPE_DRAG_PUT)
 	{
-		//if (StrCmp(msg.pSender->GetClass(), _T("CListContainerElementLicense")) == 0)
-		//{
-		//	m_pCurTransferLicenseListItem = static_cast<CListContainerElementLicense*>(msg.pSender);
-
-		//	POINT pt = *((POINT*)msg.lParam);
-
-		//	do 
-		//	{
-		//		RECT rcDeviceTree = m_pTreeViewShouQuanDevice->GetPos();
-		//		if (!::PtInRect(&rcDeviceTree, pt))
-		//		{
-		//			break;
-		//		}
-
-		//		m_pCurTransferLicenseTreeNode = NULL;
-
-		//		CTreeNodeDevice *pTreeNode = NULL;
-		//		int nCount = m_pTreeViewShouQuanDevice->GetCount();
-		//		for (int i=0; i<nCount; i++)
-		//		{
-		//			pTreeNode = static_cast<CTreeNodeDevice*>(m_pTreeViewShouQuanDevice->GetItemAt(i));
-		//			rcDeviceTree = pTreeNode->GetPos();
-		//			if (::PtInRect(&rcDeviceTree, pt))
-		//			{
-		//				m_pCurTransferLicenseTreeNode = pTreeNode;
-		//				break;
-		//			}
-		//		}
-
-		//		if (m_pCurTransferLicenseTreeNode == NULL)
-		//		{
-		//			break;
-		//		}
-
-		//		if (m_pCurTransferLicenseTreeNode->GetNodeType() == TREE_NODE_TYPE_CLOUD_ACCOUNT_ROOT ||
-		//			m_pCurTransferLicenseTreeNode->GetNodeType() == TREE_NODE_TYPE_LOCAL_ROOT ||
-		//			m_pCurTransferLicenseTreeNode->GetNodeType() == TREE_NODE_TYPE_NET_ROOT ||
-		//			m_pCurTransferLicenseTreeNode->GetNodeType() == TREE_NODE_TYPE_DEVELOPER_INFO ||
-		//			((m_pCurTransferLicenseTreeNode->GetNodeType() == TREE_NODE_TYPE_LOCK_INFO) && (m_pCurTransferLicenseTreeNode->GetLockIter()->szLockType == "remote")))
-		//		{
-		//			SSMessageBox(m_hWnd, "许可只可以在云账户和本地锁之间转移");
-		//			break;
-		//		}
-
-		//		list<VLOCK>::iterator lockIter1= m_pCurTransferLicenseListItem->GetLockIter();
-		//		list<VLOCK>::iterator lockIter2 = m_pCurTransferLicenseTreeNode->GetLockIter();
-
-		//		if (lockIter1->szLockType == lockIter2->szLockType)
-		//		{
-		//			SSMessageBox(m_hWnd, "许可只可以在云账户和本地锁之间转移");
-		//			break;
-		//		}
-
-		//		m_hShouQuanThread = CreateThread(NULL, 0, _ThreadTransferLicense3, this, CREATE_SUSPENDED, NULL);
-		//		m_pProgressFlash = new CWndProgressFlash;
-		//		m_pProgressFlash->Init(m_hShouQuanThread);
-		//		m_pProgressFlash->Create(m_hWnd, NULL, UI_WNDSTYLE_FRAME, 0);
-		//		m_pProgressFlash->CenterWindow();
-		//		m_pProgressFlash->ShowModal();
-		//		delete m_pProgressFlash;
-
-		//		int k= 0;
-
-		//	} while (false);			
-		//}
+		
 	}
 }
 
@@ -157,13 +143,38 @@ LRESULT CWndMgrTool::OnCreate( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bH
 	m_pTreeFile = static_cast<CTreeViewUI*>(m_PaintManager.FindControl("tree_file"));
 	m_pListFile = static_cast<CListUI*>(m_PaintManager.FindControl("list_file"));
 
+	m_pHorCommands = static_cast<CHorizontalLayoutUI*>(m_PaintManager.FindControl("hor_command"));
+	m_pBtnCmd0 = static_cast<CButtonUI*>(m_PaintManager.FindControl("btn_cmd1"));
+	m_pBtnCmd1 = static_cast<CButtonUI*>(m_PaintManager.FindControl("btn_cmd2"));
+	m_pBtnCmd2 = static_cast<CButtonUI*>(m_PaintManager.FindControl("btn_cmd3"));
+	m_pBtnCmd3 = static_cast<CButtonUI*>(m_PaintManager.FindControl("btn_cmd4"));
+	m_pBtnCmd4 = static_cast<CButtonUI*>(m_PaintManager.FindControl("btn_cmd5"));
+
+	m_pHorCommands->SetVisible(false);
+	CLogicImpl _impl;
+	string strMenuCmdText;
+	_impl.GetMenuCommandString(0, strMenuCmdText);
+	m_pBtnCmd0->SetText(strMenuCmdText.c_str());
+	_impl.GetMenuCommandString(1, strMenuCmdText);
+	m_pBtnCmd1->SetText(strMenuCmdText.c_str());
+	_impl.GetMenuCommandString(2, strMenuCmdText);
+	m_pBtnCmd2->SetText(strMenuCmdText.c_str());
+	_impl.GetMenuCommandString(3, strMenuCmdText);
+	m_pBtnCmd3->SetText(strMenuCmdText.c_str());
+	_impl.GetMenuCommandString(4, strMenuCmdText);
+	m_pBtnCmd4->SetText(strMenuCmdText.c_str());
+
 	m_pListFile->SetAttribute("menu", "true");
+
+	ChangeWindowMessageFilterEx2(m_hWnd, WM_DROPFILES, TRUE);
+	ChangeWindowMessageFilterEx2(m_hWnd, 0x0049, TRUE);
+	ChangeWindowMessageFilterEx2(m_hWnd, WM_COPYDATA, TRUE);
 
 	m_DragDrop.DragDropRegister(m_hWnd);
 	m_DragDrop.AddTargetControl(m_pTreeFile);
 	m_DragDrop.AddTargetControl(m_pListFile);
 
-	OpenVdFile("D:\\SourceCode\\FileView\\FileView\\Debug\\test.svd");
+	OpenVdFile("D:\\FileView\\Debug\\test.svd");
 
 	return 0;
 }
@@ -236,7 +247,14 @@ LRESULT CWndMgrTool::HandleCustomMessage( UINT uMsg, WPARAM wParam, LPARAM lPara
 				}
 				else if (pControl == m_pListFile)
 				{
-
+					if (GetFileAttributes(szFilePath) == FILE_ATTRIBUTE_DIRECTORY)
+					{
+						CopyLocalDirectoryToCurDisk(szFilePath);
+					}
+					else
+					{
+						CopyLocalFileToCurDisk(szFilePath);
+					}
 				}
 			}
 
@@ -310,6 +328,8 @@ void CWndMgrTool::OpenVdFile(LPCTSTR lpPath)
 
 		m_pTreeFile->SelectItem(0);
 		m_pCurSelTreeNode = pRoot;
+
+		m_pHorCommands->SetVisible(true);
 	}	
 }
 
@@ -327,7 +347,8 @@ void CWndMgrTool::EnumAllChildrenDir(LPCTSTR lpPath, CTreeNodeDevice *pCurNode)
 				{
 					CTreeNodeDevice *pChild = new CTreeNodeDevice;
 					pChild->SetDirText(entry.filename);
-					pCurNode->Add(pChild);
+					pCurNode->AddChildNode(pChild);
+					pCurNode->SetFolderButtonVisible(true);
 
 					string strNewPath = lpPath;
 					strNewPath += "\\";
@@ -387,7 +408,7 @@ void CWndMgrTool::MakeAbsolutePath(CTreeNodeDevice *pNode, string &Path)
 
 void CWndMgrTool::CreateListFileItem(file_entry &FileEntry)
 {
-	CListContainerElementLicense *pItem = new CListContainerElementLicense;
+	CListContainerElementFile *pItem = new CListContainerElementFile;
 	pItem->SetFileEntry(FileEntry);
 
 	string_t strIconName;
@@ -442,22 +463,32 @@ void CWndMgrTool::CreateListFileItem(file_entry &FileEntry)
 
 	pItem->SetIconName(strIconName.c_str());
 
+	bool IsFileExist = false;
+
 	if (FileEntry.is_dir)
 	{
 		int nCount = m_pListFile->GetCount();		
 		int nFileStartIndex = 0;
 		for (int i=0; i<nCount; i++)
 		{
-			CListContainerElementLicense *pItem = static_cast<CListContainerElementLicense*>(m_pListFile->GetItemAt(i));
+			CListContainerElementFile *pItem = static_cast<CListContainerElementFile*>(m_pListFile->GetItemAt(i));
 			file_entry FileEntry = pItem->GetFileEntry();
 			if (FileEntry.is_dir != 1)
 			{
+				IsFileExist = true;
 				nFileStartIndex = i;
 				break;
 			}			
 		}
 
-		m_pListFile->AddAt(pItem, nFileStartIndex);		
+		if (!IsFileExist)
+		{
+			m_pListFile->Add(pItem);
+		}
+		else
+		{
+			m_pListFile->AddAt(pItem, nFileStartIndex);		
+		}		
 	}
 	else
 	{
@@ -486,7 +517,7 @@ void CWndMgrTool::CreateNewDirectroy()
 		fs_rclose(m_pFs, dir);
 
 		char szDirName[MAX_PATH] = {0};
-		for (int i=1; i<1000; i++)
+		for (int i=1; ; i++)
 		{
 			sprintf_s(szDirName, sizeof(szDirName), "新建文件夹(%d)", i);
 			strNewPath = strUpperPath;			
@@ -588,6 +619,321 @@ void CWndMgrTool::DeleteFile()
 	}
 }
 
+void CWndMgrTool::CopyLocalFileToCurDisk( LPCTSTR lpFilePath )
+{
+	string strCurFileName;
+
+	TCHAR szTempName[MAX_PATH] = {0};
+	StrCpy(szTempName, lpFilePath);
+	PathStripPath(szTempName);
+
+	string strCurDir;
+	MakeAbsolutePath(m_pCurSelTreeNode, strCurDir);
+
+	//判断文件名是否重复了
+	if (IsFileExistInVDiskDirectory(strCurDir.c_str(), szTempName))
+	{
+		TCHAR szFileNameNoExtension[MAX_PATH] = {0};
+		TCHAR szExtension[MAX_PATH] = {0};
+		StrCpy(szFileNameNoExtension, lpFilePath);
+		PSTR lpExtension = PathFindExtension(szFileNameNoExtension);
+		StrCpy(szExtension, lpExtension);
+		PathRemoveExtension(szFileNameNoExtension);
+		PathStripPath(szFileNameNoExtension);
+
+		for (int i=1; ;i++)
+		{
+			TCHAR szTemp2[MAX_PATH] = {0};
+			sprintf_s(szTemp2, sizeof(szTemp2), _T("%s(%d)%s"), szFileNameNoExtension, i, szExtension);
+			if (!IsFileExistInVDiskDirectory(strCurDir.c_str(), szTemp2))
+			{
+				StrCpy(szTempName, szTemp2);
+				break;
+			}
+		}
+	}		
+	
+	strCurFileName += szTempName;
+
+	do 
+	{
+		void* vf = fs_fopen(m_pFs, strCurFileName.c_str(), "wb");
+		if (vf == 0)
+		{
+			SSMessageBox(m_hWnd, "打开虚拟磁盘文件失败!");
+			break;
+		}
+
+		FILE *lf = nullptr;
+		lf = fopen(lpFilePath, "rb");
+		if (lf == nullptr)
+		{
+			SSMessageBox(m_hWnd, "添加文件时，打开本地文件失败!");
+			fs_fclose(m_pFs, vf);
+			break;
+		}
+
+		while (!feof(lf))
+		{
+			char buf[4096];
+			int size = fread(buf, 1, 4096, lf);
+			if (size > 0)
+			{
+				int bytes = fs_fwrite(m_pFs, buf, 1, size, vf);
+				if (size != bytes)
+				{
+					fs_fclose(m_pFs, vf);
+					SSMessageBox(m_hWnd, "添加文件时写入数据不对!");
+					return;
+				}
+			}
+		}
+		fs_fclose(m_pFs, vf);		
+		
+		void *dir = fs_ropen(m_pFs, strCurDir.c_str());
+		if (dir != 0)
+		{
+			file_entry entry;
+			while (fs_lsdir(m_pFs, dir, &entry))
+			{
+				if(entry.is_dir == 0)
+				{
+					if (strcmp(entry.filename, szTempName) == 0)
+					{
+						CreateListFileItem(entry);
+						break;
+					}
+				}
+			}
+
+			fs_rclose(m_pFs, dir);
+		}
+	} while (false);	
+	
+	int i = 0;
+}
+
+void CWndMgrTool::CopyLocalDirectoryToCurDisk( LPCTSTR lpDirPath )
+{
+	string strCurFilePath;
+
+	TCHAR szTempName[MAX_PATH] = {0};
+	StrCpy(szTempName, lpDirPath);
+	PathStripPath(szTempName);
+
+	string strCurDir;
+	MakeAbsolutePath(m_pCurSelTreeNode, strCurDir);
+
+	if (IsDirExistInVDiskDirectroy(strCurDir.c_str(), szTempName))
+	{
+		for (int i=1; ;i++)
+		{
+			TCHAR szTemp2[MAX_PATH] = {0};
+			sprintf_s(szTemp2, sizeof(szTemp2), _T("%s(%d)"), szTempName, i);
+			if (!IsDirExistInVDiskDirectroy(strCurDir.c_str(), szTemp2))
+			{
+				StrCpy(szTempName, szTemp2);
+				break;
+			}
+		}
+	}
+
+	strCurFilePath += strCurDir;
+	strCurFilePath += szTempName;
+	strCurFilePath += "\\";
+
+	int nRet = fs_mkdir(m_pFs, strCurFilePath.c_str());
+
+	if (nRet == 0)
+	{
+		EnumLocalDirToVDiskDir(lpDirPath, strCurFilePath.c_str());
+
+		string strCurPath2;
+		strCurPath2 += strCurDir;
+		strCurPath2 += szTempName;
+
+		CTreeNodeDevice *pNewChild = new CTreeNodeDevice;
+		pNewChild->SetDirText(szTempName);
+		m_pCurSelTreeNode->AddChildNode(pNewChild);
+		EnumAllChildrenDir(strCurPath2.c_str(), pNewChild);
+
+		string strCurAbsolutePath;
+		MakeAbsolutePath(m_pCurSelTreeNode, strCurAbsolutePath);
+		void *dir = fs_ropen(m_pFs, strCurAbsolutePath.c_str());
+		if (dir != 0)
+		{
+			file_entry entry;
+			while (fs_lsdir(m_pFs, dir, &entry))
+			{
+				if(entry.is_dir)
+				{
+					if (strcmp(entry.filename, szTempName) == 0)
+					{
+						CreateListFileItem(entry);
+						break;
+					}
+				}
+			}
+
+			fs_rclose(m_pFs, dir);
+		}
+	}	
+}
+
+void CWndMgrTool::EnumLocalDirToVDiskDir( LPCTSTR lpLocalDirPath, LPCTSTR lpVDDirPath )
+{
+	WIN32_FIND_DATA FindFileData;
+	HANDLE hListFile;
+	TCHAR szFilePath[MAX_PATH] = {0};
+
+	lstrcpy(szFilePath, lpLocalDirPath);
+	lstrcat(szFilePath, _T("\\*"));
+
+	hListFile = FindFirstFile(szFilePath, &FindFileData);
+
+	if (hListFile != INVALID_HANDLE_VALUE)
+	{
+		do 
+		{
+			if (lstrcmp(FindFileData.cFileName, _T(".")) == 0 || lstrcmp(FindFileData.cFileName, _T("..")) == 0)
+			{
+				continue;
+			}	
+
+			string strCurFilePath = lpLocalDirPath;
+			strCurFilePath += "\\";
+			strCurFilePath += FindFileData.cFileName;
+
+			if (GetFileAttributes(strCurFilePath.c_str()) == FILE_ATTRIBUTE_DIRECTORY)
+			{
+				string strNewFilePath = lpVDDirPath;
+				strNewFilePath += FindFileData.cFileName;
+				strNewFilePath += "\\";
+
+				int nRet = fs_mkdir(m_pFs, strNewFilePath.c_str());
+				if (nRet == 0)
+				{
+					EnumLocalDirToVDiskDir(strCurFilePath.c_str(), strNewFilePath.c_str());
+				}
+			}
+			else
+			{
+				string strNewFilePath = lpVDDirPath;
+				strNewFilePath += FindFileData.cFileName;
+
+				void* vf = fs_fopen(m_pFs, strNewFilePath.c_str(), "wb");
+				if (vf != 0)
+				{
+					FILE *lf = nullptr;
+					lf = fopen(strCurFilePath.c_str(), "rb");
+					if (lf != nullptr)
+					{					
+						while (!feof(lf))
+						{
+							char buf[4096];
+							int size = fread(buf, 1, 4096, lf);
+							if (size > 0)
+							{
+								int bytes = fs_fwrite(m_pFs, buf, 1, size, vf);
+								if (size != bytes)
+								{
+									fs_fclose(m_pFs, vf);								
+								}
+							}
+						}
+						fs_fclose(m_pFs, vf);		
+					}		
+				}						
+			}		
+
+		} while (FindNextFile(hListFile, &FindFileData));
+	}
+}
+
+bool CWndMgrTool::IsFileExistInVDiskDirectory( LPCTSTR lpDirPath, LPCTSTR lpFileName )
+{
+	bool bRet = false;
+
+	do 
+	{
+		if (m_pFs == NULL)
+		{
+			break;
+		}
+
+		void *dir = fs_ropen(m_pFs, lpDirPath);
+		if (dir != 0)
+		{
+			file_entry entry;
+			while (fs_lsdir(m_pFs, dir, &entry))
+			{
+				if(entry.is_dir == 0)
+				{
+					if (strcmp(entry.filename, lpFileName) == 0)
+					{
+						bRet = true;
+						break;
+					}
+				}
+			}
+
+			fs_rclose(m_pFs, dir);
+		}
+	} while (false);
+
+	return bRet;
+}
+
+bool CWndMgrTool::IsDirExistInVDiskDirectroy( LPCTSTR lpDirPath, LPCTSTR lpDirName )
+{
+	bool bRet = false;
+
+	do 
+	{
+		if (m_pFs == NULL)
+		{
+			break;
+		}
+
+		void *dir = fs_ropen(m_pFs, lpDirPath);
+		if (dir != 0)
+		{
+			file_entry entry;
+			while (fs_lsdir(m_pFs, dir, &entry))
+			{
+				if(entry.is_dir)
+				{
+					if (strcmp(entry.filename, lpDirName) == 0)
+					{
+						bRet = true;
+						break;
+					}
+				}
+			}
+
+			fs_rclose(m_pFs, dir);
+		}
+	} while (false);
+
+	return bRet;
+}
+
+void CWndMgrTool::OnHandleListOrder( TNotifyUI &msg )
+{
+	CControlUI *pControl = msg.pSender->GetParent()->GetParent();
+
+	if ( pControl == m_pListFile )
+	{      
+		m_pListFile->SortItems(OrderListByHeadItem, (UINT_PTR)msg.pSender);
+		UINT_PTR ptr = msg.pSender->GetTag();
+		ptr++;
+		ptr %= 2;
+		msg.pSender->SetTag(ptr);
+	}
+}
+
+
+
 
 
 
@@ -657,7 +1003,7 @@ HBITMAP GetIconByFileType(LPCTSTR lpFileType, bool IsDirectory/* = false*/)
 				HKEY hkey = HKEY_CLASSES_ROOT;
 
 				CRegKey regRoot;
-				lRet = regRoot.Open(hkey, lpFileType);
+				lRet = regRoot.Open(hkey, lpFileType, KEY_READ);
 				if (lRet == ERROR_SUCCESS)
 				{
 					TCHAR strRootValue[MAX_PATH] = {0};
@@ -667,12 +1013,12 @@ HBITMAP GetIconByFileType(LPCTSTR lpFileType, bool IsDirectory/* = false*/)
 					if (StrCmp(strRootValue, _T("")) != 0)
 					{
 						CRegKey regModule;
-						lRet = regModule.Open(hkey,  strRootValue);
+						lRet = regModule.Open(hkey,  strRootValue, KEY_READ);
 
 						if (lRet == ERROR_SUCCESS)
 						{
 							CRegKey regIcon;
-							lRet = regIcon.Open(regModule, _T("DefaultIcon"));
+							lRet = regIcon.Open(regModule, _T("DefaultIcon"), KEY_READ);
 
 							if (lRet == ERROR_SUCCESS)
 							{									
@@ -733,7 +1079,6 @@ HBITMAP GetIconByFileType(LPCTSTR lpFileType, bool IsDirectory/* = false*/)
 							}
 						}
 					}
-
 				}
 			}
 		}
@@ -830,6 +1175,144 @@ HBITMAP GetIconByFileType(LPCTSTR lpFileType, bool IsDirectory/* = false*/)
 		::DeleteDC(dcRet);
 	}
 
-
 	return hRet;
+}
+
+int CALLBACK OrderListByHeadItem( UINT_PTR ptr1, UINT_PTR ptr2, UINT_PTR ptrData )
+{
+	CListHeaderItemUI *pHeadItemUI = (CListHeaderItemUI*)ptrData;
+	if (pHeadItemUI->GetName() == "list_headItem_file_name")
+	{
+		CListContainerElementFile *pEle1 = (CListContainerElementFile*)ptr1;
+		CListContainerElementFile *pEle2 = (CListContainerElementFile*)ptr2;
+
+		file_entry FileEntry1 = pEle1->GetFileEntry();
+		file_entry FileEntry2 = pEle2->GetFileEntry();
+
+		int nCmp = 0;
+
+			nCmp = strcmp(FileEntry1.filename, FileEntry2.filename);
+
+			if (pHeadItemUI->GetTag() == 0)
+			{            
+				return nCmp;
+			}
+			else
+			{            
+				return -nCmp;
+			}	
+	}
+	else if (pHeadItemUI->GetName() == "list_headItem_file_type")
+	{
+		CListContainerElementFile *pEle1 = (CListContainerElementFile*)ptr1;
+		CListContainerElementFile *pEle2 = (CListContainerElementFile*)ptr2;
+
+		file_entry FileEntry1 = pEle1->GetFileEntry();
+		file_entry FileEntry2 = pEle2->GetFileEntry();
+
+		int nCmp = 0;
+
+			nCmp = strcmp(pEle1->GetItemAt(1)->GetText().GetData(), pEle2->GetItemAt(1)->GetText().GetData());
+
+			if (pHeadItemUI->GetTag() == 0)
+			{            
+				return nCmp;
+			}
+			else
+			{            
+				return -nCmp;
+			}	
+	}
+	else if (pHeadItemUI->GetName() == "list_headItem_file_size")
+	{
+		CListContainerElementFile *pEle1 = (CListContainerElementFile*)ptr1;
+		CListContainerElementFile *pEle2 = (CListContainerElementFile*)ptr2;
+
+		file_entry FileEntry1 = pEle1->GetFileEntry();
+		file_entry FileEntry2 = pEle2->GetFileEntry();
+
+		int nCmp = 0;
+
+		nCmp = FileEntry1.size - FileEntry2.size;
+
+		if (pHeadItemUI->GetTag() == 0)
+		{            
+			return nCmp;
+		}
+		else
+		{            
+			return -nCmp;
+		}	
+	}
+	else if (pHeadItemUI->GetName() == "list_headItem_file_date")
+	{
+		CListContainerElementFile *pEle1 = (CListContainerElementFile*)ptr1;
+		CListContainerElementFile *pEle2 = (CListContainerElementFile*)ptr2;
+
+		file_entry FileEntry1 = pEle1->GetFileEntry();
+		file_entry FileEntry2 = pEle2->GetFileEntry();
+
+		int nCmp = 0;
+
+			int d, m, y, h, mn, s;
+			from_date(FileEntry1.create_date, &d, &mn, &y);
+			from_time(FileEntry1.create_time, &h, &m, &s);
+			SYSTEMTIME Systime;
+			ZeroMemory(&Systime, sizeof(SYSTEMTIME));
+			Systime.wYear = y;
+			Systime.wMonth = mn;
+			Systime.wDay = d;
+			Systime.wHour = h;
+			Systime.wMinute = m;
+			Systime.wSecond = s;
+			INT64 time1 = SystemTimeToINT64(Systime);
+
+			from_date(FileEntry2.create_date, &d, &mn, &y);
+			from_time(FileEntry2.create_time, &h, &m, &s);			
+			ZeroMemory(&Systime, sizeof(SYSTEMTIME));
+			Systime.wYear = y;
+			Systime.wMonth = mn;
+			Systime.wDay = d;
+			Systime.wHour = h;
+			Systime.wMinute = m;
+			Systime.wSecond = s;
+			INT64 time2 = SystemTimeToINT64(Systime);
+			
+			nCmp = time1 - time2;
+
+			if (pHeadItemUI->GetTag() == 0)
+			{            
+				return nCmp;
+			}
+			else
+			{            
+				return -nCmp;
+			}			
+	}
+
+
+	return 0;
+}
+
+SYSTEMTIME INT64ToSystemTime( INT64 t )
+{
+	struct tm * ptm = localtime((const time_t*) &t);
+	SYSTEMTIME st = {1900 + ptm->tm_year,
+		1 + ptm->tm_mon,
+		ptm->tm_wday,
+		ptm->tm_mday,
+		ptm->tm_hour,
+		ptm->tm_min,
+		ptm->tm_sec,
+		0};
+
+	return st;
+}
+
+INT64 SystemTimeToINT64( SYSTEMTIME st )
+{
+	struct tm gm = {st.wSecond, st.wMinute, st.wHour, st.wDay, st.wMonth - 1, st.wYear - 1900, st.wDayOfWeek, 0, 0};
+	time_t uTime = mktime(&gm);
+
+	return uTime;
 }

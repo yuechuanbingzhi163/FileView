@@ -2,6 +2,7 @@
 #include "MainFrameWork.h"
 #include "WndMessageBox.h"
 #include "DumpCatch.h"
+#include "LogicBaseImpl.h"
 
 HINSTANCE g_Hinstance = NULL;
 
@@ -16,11 +17,15 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	::OleInitialize(NULL);
 	::CoInitialize(NULL);
 
-	CatchDumpFile::CDumpCatch dumpCatch;
+	//CatchDumpFile::CDumpCatch dumpCatch;
 
-	CLog::Init();
+	//CLog::Init();
 
 	g_Hinstance = hInstance;
+
+	BOOL bRet = ChangeWindowMessageFilter(WM_DROPFILES, MSGFLT_ALLOW);
+	bRet = ChangeWindowMessageFilter(0x0049, MSGFLT_ALLOW);
+	bRet = ChangeWindowMessageFilter(WM_COPYDATA, MSGFLT_ALLOW);
 
 	CPaintManagerUI ::SetInstance(hInstance);
 

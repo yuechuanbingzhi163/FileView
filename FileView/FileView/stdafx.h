@@ -5,7 +5,7 @@
 
 #pragma once
 
-//#define UI_USE_ZIP
+#define UI_USE_ZIP
 
 #include "targetver.h"
 
