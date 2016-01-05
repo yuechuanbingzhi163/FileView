@@ -77,6 +77,8 @@ using namespace DuiLib;
 
 #define  WM_EXIT_APP				(WM_USER + 0X0010)
 #define  WM_NIDTIP					(WM_USER + 0x0011)
+#define  WM_COPY_LOCAL_FILE_TO_VDISK					(WM_USER + 0x0012)
+#define  WM_COPY_LOCAL_DIRECTORY_TO_VDISK					(WM_USER + 0x0013)
 
 void from_time(unsigned short fat_time, int *hours, int *minutes, int *seconds);
 void from_date(unsigned short fat_date, int *day, int *month, int *year);

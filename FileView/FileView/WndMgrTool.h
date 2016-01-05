@@ -41,7 +41,10 @@ public:
 	void DeleteFile();
 
 	void CopyLocalFileToCurDisk(LPCTSTR lpFilePath);
+	void CopyFileProc();
+
 	void CopyLocalDirectoryToCurDisk(LPCTSTR lpDirPath);
+	void CopyDirectroyProc();
 	void EnumLocalDirToVDiskDir(LPCTSTR lpLocalDirPath, LPCTSTR lpVDDirPath);
 
 	bool IsFileExistInVDiskDirectory(LPCTSTR lpDirPath, LPCTSTR lpFileName);
@@ -71,6 +74,9 @@ private:
 	CListContainerElementFile *m_pCurSelListItem;
 
 	CDropTargetEx m_DragDrop;
+
+	string m_strOldName;
+	string m_strNewName;
 };
 
 

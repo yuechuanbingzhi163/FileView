@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "DropTargetEx.h"
 
+string g_strFilePath;
+
 CDropTargetEx::CDropTargetEx():	
 	tb_RefCount(0),
 	m_hTargetWnd(0),
@@ -269,7 +271,18 @@ void CDropTargetEx::ProcessDrop(LPDRAGDATA pDropData/*HDROP hDrop*/, POINT pt)
 
 			if (pDest != NULL)
 			{
-				::SendMessage(m_hTargetWnd, WM_DRAG_FILE_INTO_TARGET, (WPARAM)(pDropData->stgMedium.hGlobal), (LPARAM)pDest);
+				HDROP hDrop = (HDROP)(pDropData->stgMedium.hGlobal);
+				char szFilePath[MAX_PATH] = {0};
+				UINT nNumOfFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
+				for (UINT nIndex=0; nIndex < nNumOfFiles; nIndex++)
+				{
+					DragQueryFile(hDrop, nIndex, szFilePath, MAX_PATH);
+					break;
+				}
+
+				g_strFilePath = szFilePath;
+
+				::PostMessage(m_hTargetWnd, WM_DRAG_FILE_INTO_TARGET, NULL, (LPARAM)pDest);
 			}
 			
 			break;

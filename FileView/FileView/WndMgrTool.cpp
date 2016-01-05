@@ -4,12 +4,17 @@
 #include "LogicImpl.h"
 #include <atlbase.h>
 
+extern string g_strFilePath;
+
 void SetClipBoardSelfData(LPCTSTR lpData);
 
 SYSTEMTIME INT64ToSystemTime(INT64 t);
 INT64 SystemTimeToINT64(SYSTEMTIME systime);
 
 int CALLBACK OrderListByHeadItem(UINT_PTR ptr1, UINT_PTR ptr2, UINT_PTR ptrData);
+
+DWORD WINAPI _ThreadCopyFileToVDisk(LPVOID lpParam);
+DWORD WINAPI _ThreadCopyDirectoryToVDisk(LPVOID lpParam);
 
 DUI_BEGIN_MESSAGE_MAP(CWndMgrTool, CNotifyPump)
     DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK,OnClick)   
@@ -22,6 +27,7 @@ CWndMgrTool::CWndMgrTool(void)
 {
 	m_pFs = NULL;
 	m_pProgressFlash = NULL;
+	m_hThreadCommon = NULL;
 	m_pCurSelTreeNode = NULL;
 }
 
@@ -213,6 +219,94 @@ LRESULT CWndMgrTool::HandleCustomMessage( UINT uMsg, WPARAM wParam, LPARAM lPara
 {
     switch(uMsg)
     {	
+	case WM_COPY_LOCAL_DIRECTORY_TO_VDISK:
+		{
+			CloseHandle(m_hThreadCommon);
+			m_pProgressFlash->Close();
+
+			int nRet = (int)lParam;
+			if (nRet == 0)
+			{
+				string strCurDir;
+				MakeAbsolutePath(m_pCurSelTreeNode, strCurDir);
+
+				string strCurPath2;
+				strCurPath2 += strCurDir;
+				strCurPath2 += m_strNewName;
+
+				CTreeNodeDevice *pNewChild = new CTreeNodeDevice;
+				pNewChild->SetDirText(m_strNewName.c_str());
+				m_pCurSelTreeNode->AddChildNode(pNewChild);
+				EnumAllChildrenDir(strCurPath2.c_str(), pNewChild);
+
+				string strCurAbsolutePath;
+				MakeAbsolutePath(m_pCurSelTreeNode, strCurAbsolutePath);
+				void *dir = fs_ropen(m_pFs, strCurAbsolutePath.c_str());
+				if (dir != 0)
+				{
+					file_entry entry;
+					while (fs_lsdir(m_pFs, dir, &entry))
+					{
+						if(entry.is_dir)
+						{
+							if (strcmp(entry.filename, m_strNewName.c_str()) == 0)
+							{
+								CreateListFileItem(entry);
+								break;
+							}
+						}
+					}
+					fs_rclose(m_pFs, dir);
+				}
+			}
+
+			break;
+		}
+	case WM_COPY_LOCAL_FILE_TO_VDISK:
+		{
+			CloseHandle(m_hThreadCommon);
+			m_pProgressFlash->Close();
+
+			int nRet = (int)lParam;
+			if (nRet == 1)
+			{
+				SSMessageBox(m_hWnd, "打开虚拟磁盘文件失败!");
+			}
+			else if (nRet == 2)
+			{
+				SSMessageBox(m_hWnd, "添加文件时，打开本地文件失败!");
+			}
+			else if (nRet == 3)
+			{
+				SSMessageBox(m_hWnd, "添加文件时写入数据不对!");
+			}
+			else if (nRet == 0)
+			{
+				string strCurDir;
+				MakeAbsolutePath(m_pCurSelTreeNode, strCurDir);
+
+				void *dir = fs_ropen(m_pFs, strCurDir.c_str());
+				if (dir != 0)
+				{
+					file_entry entry;
+					while (fs_lsdir(m_pFs, dir, &entry))
+					{
+						if(entry.is_dir == 0)
+						{
+							if (strcmp(entry.filename, m_strNewName.c_str()) == 0)
+							{
+								CreateListFileItem(entry);
+								break;
+							}
+						}
+					}
+
+					fs_rclose(m_pFs, dir);
+				}
+			}
+
+			break;
+		}
     case WM_MENUCLICK:
         {
             CDuiString *strMenuName = (CDuiString *)wParam;
@@ -227,33 +321,24 @@ LRESULT CWndMgrTool::HandleCustomMessage( UINT uMsg, WPARAM wParam, LPARAM lPara
 			break;	
         } 
 	case WM_DRAG_FILE_INTO_TARGET:
-		{
-			HDROP hDrop = (HDROP)wParam;
-			CControlUI *pControl = (CControlUI *)lParam;
+		{			
+			CControlUI *pControl = (CControlUI *)lParam;			
 
-			char szFilePath[MAX_PATH] = {0};
-			UINT nNumOfFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
-			for (UINT nIndex=0; nIndex < nNumOfFiles; nIndex++)
-			{
-				DragQueryFile(hDrop, nIndex, szFilePath, MAX_PATH);
-				break;
-			}
-
-			if (PathFileExists(szFilePath))
+			if (PathFileExists(g_strFilePath.c_str()))
 			{
 				if (pControl == m_pTreeFile)
 				{
-					OpenVdFile(szFilePath);
+					OpenVdFile(g_strFilePath.c_str());
 				}
 				else if (pControl == m_pListFile)
 				{
-					if (GetFileAttributes(szFilePath) == FILE_ATTRIBUTE_DIRECTORY)
+					if (GetFileAttributes(g_strFilePath.c_str()) == FILE_ATTRIBUTE_DIRECTORY)
 					{
-						CopyLocalDirectoryToCurDisk(szFilePath);
+						CopyLocalDirectoryToCurDisk(g_strFilePath.c_str());
 					}
 					else
 					{
-						CopyLocalFileToCurDisk(szFilePath);
+						CopyLocalFileToCurDisk(g_strFilePath.c_str());
 					}
 				}
 			}
@@ -621,163 +706,30 @@ void CWndMgrTool::DeleteFile()
 
 void CWndMgrTool::CopyLocalFileToCurDisk( LPCTSTR lpFilePath )
 {
-	string strCurFileName;
+	m_strOldName = lpFilePath;
 
-	TCHAR szTempName[MAX_PATH] = {0};
-	StrCpy(szTempName, lpFilePath);
-	PathStripPath(szTempName);
-
-	string strCurDir;
-	MakeAbsolutePath(m_pCurSelTreeNode, strCurDir);
-
-	//判断文件名是否重复了
-	if (IsFileExistInVDiskDirectory(strCurDir.c_str(), szTempName))
-	{
-		TCHAR szFileNameNoExtension[MAX_PATH] = {0};
-		TCHAR szExtension[MAX_PATH] = {0};
-		StrCpy(szFileNameNoExtension, lpFilePath);
-		PSTR lpExtension = PathFindExtension(szFileNameNoExtension);
-		StrCpy(szExtension, lpExtension);
-		PathRemoveExtension(szFileNameNoExtension);
-		PathStripPath(szFileNameNoExtension);
-
-		for (int i=1; ;i++)
-		{
-			TCHAR szTemp2[MAX_PATH] = {0};
-			sprintf_s(szTemp2, sizeof(szTemp2), _T("%s(%d)%s"), szFileNameNoExtension, i, szExtension);
-			if (!IsFileExistInVDiskDirectory(strCurDir.c_str(), szTemp2))
-			{
-				StrCpy(szTempName, szTemp2);
-				break;
-			}
-		}
-	}		
-	
-	strCurFileName += szTempName;
-
-	do 
-	{
-		void* vf = fs_fopen(m_pFs, strCurFileName.c_str(), "wb");
-		if (vf == 0)
-		{
-			SSMessageBox(m_hWnd, "打开虚拟磁盘文件失败!");
-			break;
-		}
-
-		FILE *lf = nullptr;
-		lf = fopen(lpFilePath, "rb");
-		if (lf == nullptr)
-		{
-			SSMessageBox(m_hWnd, "添加文件时，打开本地文件失败!");
-			fs_fclose(m_pFs, vf);
-			break;
-		}
-
-		while (!feof(lf))
-		{
-			char buf[4096];
-			int size = fread(buf, 1, 4096, lf);
-			if (size > 0)
-			{
-				int bytes = fs_fwrite(m_pFs, buf, 1, size, vf);
-				if (size != bytes)
-				{
-					fs_fclose(m_pFs, vf);
-					SSMessageBox(m_hWnd, "添加文件时写入数据不对!");
-					return;
-				}
-			}
-		}
-		fs_fclose(m_pFs, vf);		
-		
-		void *dir = fs_ropen(m_pFs, strCurDir.c_str());
-		if (dir != 0)
-		{
-			file_entry entry;
-			while (fs_lsdir(m_pFs, dir, &entry))
-			{
-				if(entry.is_dir == 0)
-				{
-					if (strcmp(entry.filename, szTempName) == 0)
-					{
-						CreateListFileItem(entry);
-						break;
-					}
-				}
-			}
-
-			fs_rclose(m_pFs, dir);
-		}
-	} while (false);	
-	
-	int i = 0;
+	m_hThreadCommon = CreateThread(NULL, 0, _ThreadCopyFileToVDisk, this, CREATE_SUSPENDED, NULL);
+	m_pProgressFlash = new CWndProgressFlash;
+	m_pProgressFlash->Init(m_hThreadCommon);
+	m_pProgressFlash->Create(m_hWnd, NULL, UI_WNDSTYLE_FRAME, 0);
+	m_pProgressFlash->CenterWindow();
+	m_pProgressFlash->ShowModal();
+	delete m_pProgressFlash;
+	m_pProgressFlash = NULL;	
 }
 
 void CWndMgrTool::CopyLocalDirectoryToCurDisk( LPCTSTR lpDirPath )
 {
-	string strCurFilePath;
+	m_strOldName = lpDirPath;
 
-	TCHAR szTempName[MAX_PATH] = {0};
-	StrCpy(szTempName, lpDirPath);
-	PathStripPath(szTempName);
-
-	string strCurDir;
-	MakeAbsolutePath(m_pCurSelTreeNode, strCurDir);
-
-	if (IsDirExistInVDiskDirectroy(strCurDir.c_str(), szTempName))
-	{
-		for (int i=1; ;i++)
-		{
-			TCHAR szTemp2[MAX_PATH] = {0};
-			sprintf_s(szTemp2, sizeof(szTemp2), _T("%s(%d)"), szTempName, i);
-			if (!IsDirExistInVDiskDirectroy(strCurDir.c_str(), szTemp2))
-			{
-				StrCpy(szTempName, szTemp2);
-				break;
-			}
-		}
-	}
-
-	strCurFilePath += strCurDir;
-	strCurFilePath += szTempName;
-	strCurFilePath += "\\";
-
-	int nRet = fs_mkdir(m_pFs, strCurFilePath.c_str());
-
-	if (nRet == 0)
-	{
-		EnumLocalDirToVDiskDir(lpDirPath, strCurFilePath.c_str());
-
-		string strCurPath2;
-		strCurPath2 += strCurDir;
-		strCurPath2 += szTempName;
-
-		CTreeNodeDevice *pNewChild = new CTreeNodeDevice;
-		pNewChild->SetDirText(szTempName);
-		m_pCurSelTreeNode->AddChildNode(pNewChild);
-		EnumAllChildrenDir(strCurPath2.c_str(), pNewChild);
-
-		string strCurAbsolutePath;
-		MakeAbsolutePath(m_pCurSelTreeNode, strCurAbsolutePath);
-		void *dir = fs_ropen(m_pFs, strCurAbsolutePath.c_str());
-		if (dir != 0)
-		{
-			file_entry entry;
-			while (fs_lsdir(m_pFs, dir, &entry))
-			{
-				if(entry.is_dir)
-				{
-					if (strcmp(entry.filename, szTempName) == 0)
-					{
-						CreateListFileItem(entry);
-						break;
-					}
-				}
-			}
-
-			fs_rclose(m_pFs, dir);
-		}
-	}	
+	m_hThreadCommon = CreateThread(NULL, 0, _ThreadCopyDirectoryToVDisk, this, CREATE_SUSPENDED, NULL);
+	m_pProgressFlash = new CWndProgressFlash;
+	m_pProgressFlash->Init(m_hThreadCommon);
+	m_pProgressFlash->Create(m_hWnd, NULL, UI_WNDSTYLE_FRAME, 0);
+	m_pProgressFlash->CenterWindow();
+	m_pProgressFlash->ShowModal();
+	delete m_pProgressFlash;
+	m_pProgressFlash = NULL;	
 }
 
 void CWndMgrTool::EnumLocalDirToVDiskDir( LPCTSTR lpLocalDirPath, LPCTSTR lpVDDirPath )
@@ -930,6 +882,133 @@ void CWndMgrTool::OnHandleListOrder( TNotifyUI &msg )
 		ptr %= 2;
 		msg.pSender->SetTag(ptr);
 	}
+}
+
+void CWndMgrTool::CopyFileProc()
+{
+	int nRet = 0;
+
+	string strCurFileName;
+
+	TCHAR szTempName[MAX_PATH] = {0};
+	StrCpy(szTempName, m_strOldName.c_str());
+	PathStripPath(szTempName);
+
+	string strCurDir;
+	MakeAbsolutePath(m_pCurSelTreeNode, strCurDir);
+
+	//判断文件名是否重复了
+	if (IsFileExistInVDiskDirectory(strCurDir.c_str(), szTempName))
+	{
+		TCHAR szFileNameNoExtension[MAX_PATH] = {0};
+		TCHAR szExtension[MAX_PATH] = {0};
+		StrCpy(szFileNameNoExtension, m_strOldName.c_str());
+		PSTR lpExtension = PathFindExtension(szFileNameNoExtension);
+		StrCpy(szExtension, lpExtension);
+		PathRemoveExtension(szFileNameNoExtension);
+		PathStripPath(szFileNameNoExtension);
+
+		for (int i=1; ;i++)
+		{
+			TCHAR szTemp2[MAX_PATH] = {0};
+			sprintf_s(szTemp2, sizeof(szTemp2), _T("%s(%d)%s"), szFileNameNoExtension, i, szExtension);
+			if (!IsFileExistInVDiskDirectory(strCurDir.c_str(), szTemp2))
+			{
+				StrCpy(szTempName, szTemp2);
+				break;
+			}
+		}
+	}		
+
+	strCurFileName = strCurDir;
+	strCurFileName += szTempName;
+	m_strNewName = szTempName;
+
+	do 
+	{
+		void* vf = fs_fopen(m_pFs, strCurFileName.c_str(), "wb");
+		if (vf == 0)
+		{
+			nRet = 1;			
+			break;
+		}
+
+		FILE *lf = nullptr;
+		lf = fopen(m_strOldName.c_str(), "rb");
+		if (lf == nullptr)
+		{
+			nRet = 2;			
+			fs_fclose(m_pFs, vf);
+			break;
+		}
+
+		while (!feof(lf))
+		{
+			char buf[4096];
+			int size = fread(buf, 1, 4096, lf);
+			if (size > 0)
+			{
+				int bytes = fs_fwrite(m_pFs, buf, 1, size, vf);
+				if (size != bytes)
+				{
+					fs_fclose(m_pFs, vf);
+					nRet = 3;					
+					return;
+				}
+			}
+		}
+		fs_fclose(m_pFs, vf);	
+
+	} while (false);	
+
+	::SendMessage(m_hWnd, WM_COPY_LOCAL_FILE_TO_VDISK, NULL, (LPARAM)nRet);
+}
+
+void CWndMgrTool::CopyDirectroyProc()
+{
+	int nRet = 0;
+
+	string strCurFilePath;
+
+	TCHAR szTempName[MAX_PATH] = {0};
+	StrCpy(szTempName, m_strOldName.c_str());
+	PathStripPath(szTempName);
+
+	string strCurDir;
+	MakeAbsolutePath(m_pCurSelTreeNode, strCurDir);
+
+	if (IsDirExistInVDiskDirectroy(strCurDir.c_str(), szTempName))
+	{
+		for (int i=1; ;i++)
+		{
+			TCHAR szTemp2[MAX_PATH] = {0};
+			sprintf_s(szTemp2, sizeof(szTemp2), _T("%s(%d)"), szTempName, i);
+			if (!IsDirExistInVDiskDirectroy(strCurDir.c_str(), szTemp2))
+			{
+				StrCpy(szTempName, szTemp2);
+				break;
+			}
+		}
+	}
+
+	strCurFilePath += strCurDir;
+	strCurFilePath += szTempName;
+	strCurFilePath += "\\";
+
+	m_strNewName = szTempName;
+
+	nRet = fs_mkdir(m_pFs, strCurFilePath.c_str());
+
+	if (nRet == 0)
+	{
+		EnumLocalDirToVDiskDir(m_strOldName.c_str(), strCurFilePath.c_str());		
+	}	
+	else
+	{
+		nRet = 1;
+	}
+
+	::SendMessage(m_hWnd, WM_COPY_LOCAL_DIRECTORY_TO_VDISK, NULL, (LPARAM)nRet);
 }
 
 
@@ -1290,7 +1369,6 @@ int CALLBACK OrderListByHeadItem( UINT_PTR ptr1, UINT_PTR ptr2, UINT_PTR ptrData
 			}			
 	}
 
-
 	return 0;
 }
 
@@ -1315,4 +1393,22 @@ INT64 SystemTimeToINT64( SYSTEMTIME st )
 	time_t uTime = mktime(&gm);
 
 	return uTime;
+}
+
+DWORD WINAPI _ThreadCopyFileToVDisk(LPVOID lpParam)
+{
+	CWndMgrTool *pWnd = (CWndMgrTool*)lpParam;
+
+	pWnd->CopyFileProc();
+
+	return 0;
+}
+
+DWORD WINAPI _ThreadCopyDirectoryToVDisk(LPVOID lpParam)
+{
+	CWndMgrTool *pWnd = (CWndMgrTool*)lpParam;
+
+	pWnd->CopyDirectroyProc();
+
+	return 0;
 }
